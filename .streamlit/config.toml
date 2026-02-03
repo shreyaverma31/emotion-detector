@@ -1,0 +1,8 @@
+[server]
+headless = true
+
+[runner]
+magicEnabled = false
+
+[env]
+PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION = "python"
