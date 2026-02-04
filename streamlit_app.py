@@ -1,45 +1,36 @@
-import tensorflow as tf
-import pickle
-import numpy as np
-import nltk
 import streamlit as st
-from nltk.corpus import stopwords
-from tensorflow.keras.preprocessing.sequence import pad_sequences
+import tensorflow as tf
+import numpy as np
+import pickle
 
-nltk.download("stopwords")
-stop_words = set(stopwords.words("english"))
+# Load model
+model = tf.keras.models.load_model("emotion_model_tf")  # or .keras if working
 
-model = tf.keras.models.load_model("emotion_model.keras")
-
+# Load tokenizer
 with open("tokenizer.pkl", "rb") as f:
     tokenizer = pickle.load(f)
 
-emotion_labels = {
-    0: "Sadness 😢",
-    1: "Joy 😊",
-    2: "Love ❤️",
-    3: "Anger 😠",
-    4: "Fear 😨",
-    5: "Surprise 😲"
-}
+MAX_LEN = 100
+labels = ["Angry", "Fear", "Happy", "Sad", "Surprise"]
 
-def clean_text(text):
-    text = text.lower()
-    words = [w for w in text.split() if w not in stop_words]
-    return " ".join(words)
+st.set_page_config(page_title="Emotion Detector", page_icon="🧠")
 
 st.title("🧠 Emotion Detection from Text")
-st.write("Enter a sentence and detect emotion")
 
-user_text = st.text_area("Your text here:")
+text = st.text_area("Enter text here:")
 
 if st.button("Predict Emotion"):
-    cleaned = clean_text(user_text)
-    seq = tokenizer.texts_to_sequences([cleaned])
-    padded = pad_sequences(seq, maxlen=100)
-    pred = model.predict(padded)
-    label = np.argmax(pred)
-    confidence = np.max(pred)
+    if text.strip() == "":
+        st.warning("⚠️ Please enter some text")
+    else:
+        # Preprocess text
+        seq = tokenizer.texts_to_sequences([text])
+        padded = tf.keras.preprocessing.sequence.pad_sequences(
+            seq, maxlen=MAX_LEN
+        )
 
-    st.success(f"Emotion: {emotion_labels[label]}")
-    st.write(f"Confidence: {confidence:.2f}")
+        # Predict
+        pred = model.predict(padded)
+        emotion = labels[np.argmax(pred)]
+
+        st.success(f"🎯 Predicted Emotion: **{emotion}**")
