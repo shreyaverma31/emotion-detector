@@ -1,7 +1,6 @@
 streamlit
 keras
 numpy
-pickle-mixin
 nltk
 scikit-learn
-
+pickle-mixin
