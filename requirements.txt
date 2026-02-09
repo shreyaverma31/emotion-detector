@@ -1,6 +1,6 @@
-streamlit
-tensorflow-cpu==2.15.0
+fastapi
+uvicorn
+tensorflow==2.15.0
+keras==2.15.0
 numpy
-nltk
-scikit-learn
-pickle-mixin
+pydantic

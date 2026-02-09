@@ -1,44 +1,47 @@
-import pickle
+from fastapi import FastAPI
+from pydantic import BaseModel
 import numpy as np
+import pickle
 import nltk
-import streamlit as st
 
 from nltk.corpus import stopwords
 from keras.models import load_model
 from keras.preprocessing.sequence import pad_sequences
 
-# Download stopwords once
 nltk.download("stopwords")
 stop_words = set(stopwords.words("english"))
 
-@st.cache_resource
-def load_emotion_model():
-    return load_model("emotion_model.keras")
+MAX_LEN = 100
+labels = ["Angry 😠", "Fear 😨", "Happy 😊", "Sad 😢", "Surprise 😲"]
 
-model = load_emotion_model()
+app = FastAPI(title="Emotion Detection API")
+
+# Load model once
+model = load_model("emotion_model.keras")
 
 with open("tokenizer.pkl", "rb") as f:
     tokenizer = pickle.load(f)
 
-emotion_labels = {
-    0: "Sadness 😢",
-    1: "Joy 😊",
-    2: "Love ❤️",
-    3: "Anger 😠",
-    4: "Fear 😨",
-    5: "Surprise 😲"
-}
+class TextInput(BaseModel):
+    text: str
 
 def clean_text(text):
     text = text.lower()
     return " ".join(w for w in text.split() if w not in stop_words)
 
-st.title("🧠 Emotion Detection from Text")
-user_text = st.text_area("Enter your sentence")
+@app.get("/")
+def home():
+    return {"message": "Emotion Detector API is running 🚀"}
 
-if st.button("Predict Emotion"):
-    if user_text.strip():
-        seq = tokenizer.texts_to_sequences([clean_text(user_text)])
-        padded = pad_sequences(seq, maxlen=100)
-        pred = model.predict(padded)
-        st.success(f"Emotion: {emotion_labels[np.argmax(pred)]}")
+@app.post("/predict")
+def predict_emotion(data: TextInput):
+    seq = tokenizer.texts_to_sequences([clean_text(data.text)])
+    padded = pad_sequences(seq, maxlen=MAX_LEN)
+    pred = model.predict(padded)
+    emotion = labels[int(np.argmax(pred))]
+    confidence = float(np.max(pred))
+
+    return {
+        "emotion": emotion,
+        "confidence": round(confidence, 2)
+    }
