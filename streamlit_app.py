@@ -3,10 +3,11 @@ import numpy as np
 import pickle
 import os
 import nltk
+import tensorflow as tf
 
 from nltk.corpus import stopwords
-from keras.models import load_model
-from keras.preprocessing.sequence import pad_sequences
+from tensorflow.keras.models import load_model
+from tensorflow.keras.preprocessing.sequence import pad_sequences
 
 nltk.data.path.append(os.path.join(os.getcwd(), "nltk_data"))
 
